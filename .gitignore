@@ -1,0 +1,6 @@
+# Rust ignores.
+/target
+/Cargo.lock
+
+# Ignore the testing ELF
+*.elf
