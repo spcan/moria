@@ -4,4 +4,5 @@
 
 
 
+mod dwarf;
 mod elf;
