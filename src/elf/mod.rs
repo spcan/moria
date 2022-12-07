@@ -3,7 +3,9 @@
 
 
 pub mod common;
-mod header;
+mod error;
+mod file;
+mod section;
 mod symbol;
 pub mod traits;
 
@@ -13,13 +15,20 @@ use common::{
     SectionType,
 };
 
-pub use header::{
-    FileHeader   , ELFHeader ,
-    SectionHeader, ELFSection,
+pub use error::{
+    ELFError,
+};
+
+pub use file::{
+    ELFHeader,
+};
+
+pub use section::{
+    ELFSection,
 };
 
 pub use symbol::{
-    ELFSymbol
+    ELFSymbol,
 };
 
 use std::{
@@ -51,10 +60,10 @@ pub struct ELFContent {
     pub raw: Vec<u8>,
 
     /// File header of the ELF.
-    pub header: Box<dyn FileHeader>,
+    pub header: Box<dyn traits::FileHeader>,
 
     /// List of all sections in this ELF file.
-    pub sections: Vec<Box<dyn SectionHeader>>,
+    pub sections: Vec<Box<dyn traits::SectionHeader>>,
 
     /// List of all symbols in this ELF file.
     pub symbols: Vec<Box<dyn traits::Symbol>>,
@@ -62,12 +71,17 @@ pub struct ELFContent {
 
 impl ELFContent {
     /// Parses the contents of a file and attempts to build an ELF object from them.
-    pub fn parse(raw: Vec<u8>) -> Self {
+    pub fn parse(raw: Vec<u8>) -> Result<Self, Box<dyn Error>> {
+        use traits::{
+            FileHeader, SectionHeader,
+        };
+
+
         const EMPTY: [u8; 0] = [];
 
         // Check the magic.
         if raw[0..4] != [0x7F, 0x45, 0x4C, 0x46] {
-            todo!("Gracefully return error")
+            return Err( Box::new( ELFError::BadMagic( [raw[0], raw[1], raw[2], raw[3]] ) ) );
         }
 
         // Check the pointer width.
@@ -112,12 +126,12 @@ impl ELFContent {
                 // Get the names of the symbols.
                 Self::rename(strtab, &mut symbols);
 
-                ELFContent {
+                Ok( ELFContent {
                     raw,
                     header: Box::new( header ),
                     sections,
                     symbols,
-                }
+                })
             },
 
             2 => {
@@ -160,25 +174,27 @@ impl ELFContent {
                 // Get the names of the symbols.
                 Self::rename(strtab, &mut symbols);
 
-                ELFContent {
+                Ok( ELFContent {
                     raw,
                     header: Box::new( header ),
                     sections,
                     symbols,
-                }
+                })
             },
 
-            _ => todo!("Gracefully return error"),
+            _ => Err( Box::new( ELFError::BadPointerWidth( raw[4] ) ) ),
         }
     }
 
-    fn sectiondata<'a>(raw: &'a [u8], section: &Box<dyn SectionHeader>) -> &'a [u8] {
+    /// Access to the raw contents of a section.
+    fn sectiondata<'a>(raw: &'a [u8], section: &Box<dyn traits::SectionHeader>) -> &'a [u8] {
         // Get the offset and size of the symbol section.
         let (o, s) = section.phys();
 
         &raw[o..o+s]
     }
 
+    /// Names a list of items from the strings in the given string table.
     fn rename<R: traits::Rename + ?Sized>(strtab: &[u8], objects: &mut Vec<Box<R>>) {
         if strtab.len() == 0 { return; }
 
@@ -188,9 +204,11 @@ impl ELFContent {
 
             // Get the name.
             let name = match CStr::from_bytes_until_nul(&strtab[offset..]) {
-                Err(e) => String::from("CORRUPTED"),
+                Err(_) => String::from("CORRUPTED"),
+
                 Ok(cstr) => match cstr.to_owned().into_string() {
-                    Err(e) => String::from("CORRUPTED"),
+                    Err(_) => String::from("CORRUPTED"),
+
                     Ok(n) => n,
                 },
             };
@@ -210,9 +228,13 @@ impl core::convert::TryFrom<PathBuf> for ELFContent {
             Ok(mut f) => {
                 // Read the contents of the file.
                 let mut raw = Vec::new();
-                f.read_to_end(&mut raw);
 
-                Ok( ELFContent::parse(raw) )
+                match f.read_to_end(&mut raw) {
+                    Err(e) => return Err( Box::new( e ) ),
+                    _ => (),
+                }
+
+                ELFContent::parse(raw)
             },
         }
     }
@@ -228,9 +250,13 @@ impl core::convert::TryFrom<&PathBuf> for ELFContent {
             Ok(mut f) => {
                 // Read the contents of the file.
                 let mut raw = Vec::new();
-                f.read_to_end(&mut raw);
 
-                Ok( ELFContent::parse(raw) )
+                match f.read_to_end(&mut raw) {
+                    Err(e) => return Err( Box::new( e ) ),
+                    _ => (),
+                }
+
+                ELFContent::parse(raw)
             },
         }
     }

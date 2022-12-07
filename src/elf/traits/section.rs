@@ -1,33 +1,24 @@
-//! ELF Section Header abstraction.
+//! Common trait for section headers of all architectural types.
 
 
-
-use byteorder::{
-    BigEndian, LittleEndian,
-    ByteOrder,
-};
 
 use crate::{
     elf::{
         common::{
-            read::{
-                big32, little32,
-            },
-
-            Endian, SectionType, SectionFlags,
-        },
-
-        traits::{
-            Rename,
+            Endian, SectionType,
         },
     },
+};
+
+use super::{
+    FileHeader, Rename,
 };
 
 
 
 pub trait SectionHeader: core::fmt::Display + Rename {
     /// Parses all section headers with the given headers configuration.
-    fn all(table: &[u8], header: &dyn super::FileHeader) -> Vec<Box<dyn SectionHeader>> where Self: Sized + 'static {
+    fn all(table: &[u8], header: &dyn FileHeader) -> Vec<Box<dyn SectionHeader>> where Self: Sized + 'static {
         // Get the size of each header and the number of headers.
         let endian = header.endian();
         let size = header.shsize();

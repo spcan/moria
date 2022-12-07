@@ -90,7 +90,6 @@ impl Symbol for ELFSymbol<u64> {
 
         // Get size of the symbol.
         let size = read( &chunk[i..i+8] );
-        i += 8;
 
         ELFSymbol {
             strndx,

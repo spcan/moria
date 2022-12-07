@@ -1,11 +1,11 @@
-//! ELF Header abstraction.
+//! ELF Header parsing and interaction.
 
 
 
-use byteorder::{
-    BigEndian, LittleEndian,
-    ByteOrder,
-};
+mod x32;
+mod x64;
+
+
 
 use crate::{
     elf::{
@@ -23,37 +23,7 @@ use crate::{
 
 
 
-pub trait FileHeader: core::fmt::Display {
-    /// Parses an ELF header.
-    fn parse(header: &[u8]) -> Self where Self: Sized;
-
-    /// Returns the endianness of the target architecture.
-    fn endian(&self) -> Endian;
-
-    /// Returns the file offset into the Program Header Table.
-    fn phtoffset(&self) -> usize;
-
-    /// Returns the file offset into the Section Header Table.
-    fn shtoffset(&self) -> usize;
-
-    /// Returns the size of the Program Header.
-    fn phsize(&self) -> usize;
-
-    /// Returns the size of the Section Header.
-    fn shsize(&self) -> usize;
-
-    /// Returns the number of Program Headers.
-    fn phnum(&self) -> usize;
-
-    /// Returns the number of Section Headers.
-    fn shnum(&self) -> usize;
-
-    /// Returns the index of the String Section.
-    fn shstrndx(&self) -> usize;
-}
-
-
-
+/// Contains an ELF Header.
 pub struct ELFHeader<T> {
     /// Endianness of the target architecture.
     endian: Endian,
@@ -85,7 +55,6 @@ pub struct ELFHeader<T> {
     /// Index of the Section Header of the string table.
     shstrndx: u16,
 }
-
 
 impl<T> ELFHeader<T> {
     fn create(header: &[u8], endian: Endian, read: fn(&[u8]) -> T) -> Self {

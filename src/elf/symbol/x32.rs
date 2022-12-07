@@ -126,6 +126,10 @@ impl core::fmt::Display for ELFSymbol<u32> {
         string += &format!("|  |- Binding   : {}\n", self.binding);
         string += &format!("|  |- Visibility: {}\n", self.visibility);
 
+        if self.relativity != 0 {
+            string += &format!("|- Related section index: {} \n", self.relativity)
+        }
+
         // Add address information.
         string += "|- Symbol value\n";
 
