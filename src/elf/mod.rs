@@ -209,6 +209,8 @@ impl ELFContent {
                 Ok(cstr) => match cstr.to_owned().into_string() {
                     Err(_) => String::from("CORRUPTED"),
 
+                    Ok(n) if n.len() == 0 => String::from("NULL"),
+
                     Ok(n) => n,
                 },
             };
