@@ -17,6 +17,15 @@ pub trait Symbol: core::fmt::Display + super::Rename {
     /// Parses a single Symbol.
     fn parse(chunk: &[u8], endian: Endian) -> Self where Self: Sized;
 
+    /// Returns the name of the symbol
+    fn name(&self) -> &str;
+
+    /// Returns the address of the symbol.
+    fn address(&self) -> usize;
+
+    /// Returns the size of the symbol.
+    fn size(&self) -> usize;
+
     /// Returns the type of this symbol.
     fn stype(&self) -> SymbolType;
 }

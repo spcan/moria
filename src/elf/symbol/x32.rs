@@ -105,6 +105,18 @@ impl Symbol for ELFSymbol<u32> {
         }
     }
 
+    fn name(&self) -> &str {
+        &self.name
+    }
+
+    fn address(&self) -> usize {
+        self.value as usize
+    }
+
+    fn size(&self) -> usize {
+        self.size as usize
+    }
+
     fn stype(&self) -> SymbolType {
         self.stype
     }
