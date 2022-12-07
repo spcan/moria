@@ -4,5 +4,5 @@
 
 
 
-mod dwarf;
-mod elf;
+pub mod dwarf;
+pub mod elf;
