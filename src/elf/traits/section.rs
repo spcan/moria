@@ -46,6 +46,7 @@ pub trait SectionHeader: core::fmt::Display + Rename {
     /// Returns the virtual address and size.
     fn virt(&self) -> (usize, usize);
 
+    /// Returns the type of section.
     fn stype(&self) -> SectionType;
 }
 
