@@ -75,8 +75,8 @@ impl core::fmt::Display for SectionFlags {
 
         let string = flags.iter()
             .zip(STRINGS.iter())
-            .filter(|(f, s)| **f)
-            .map(|(f, s)| *s)
+            .filter(|(f, _)| **f)
+            .map(|(_, s)| *s)
             .collect::<Vec<_>>();
 
         if string.is_empty() {
