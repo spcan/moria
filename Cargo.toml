@@ -10,6 +10,10 @@ edition = "2021"
 [dependencies.byteorder]
 version = "1.4.3"
 
+[dependencies.gimli]
+version = "0.27.0"
+features = ["read", "endian-reader"]
+
 
 
 [features]
